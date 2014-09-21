@@ -1,0 +1,83 @@
+---
+title       : Newsreader App Presentation
+subtitle    : 
+author      : Benjamin Greve
+job         : Consultant (Forensic Data Analysis)
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+
+
+## App summary
+
+This app takes a search term and queries the [Feedzilla-API](https://code.google.com/p/feedzilla-api/wiki/RestApi) to obtain a list of related news articles.
+
+### Input
+
+- A single search term without spaces or special characters.
+
+### Output
+
+- The queried search term
+- A table with the number of articles by source
+- A list of headlines with links to the articles
+
+
+
+--- .class #id 
+
+## Feedzilla
+
+"Feedzilla is a news feeds distributor, providing headlines and news feeds in over 2,000 categories for websites, blogs and common users. Feedzilla aggregates news feeds from over 250,000 sources, then processes and categorizes the news feeds in over 2,000 categories. Feedzilla’s news API offers easy and quick access to a vast database of news headlines."  
+
+(description from [ProgrammableWeb](http://www.programmableweb.com/api/feedzilla))  
+
+- Feedzilla homepage: http://www.feedzilla.com/
+- Feedzilla API documentation: https://code.google.com/p/feedzilla-api/wiki/RestApi
+
+
+
+--- .class #id 
+
+## How to use the Feedzilla API?
+
+- Send a query string to the Feedzilla web API
+- Parse the returned XML result and extract the relevant information (e.g. the headline or the news source)
+
+```{r}
+library(XML)
+library(RCurl)
+
+qry <- "http://api.feedzilla.com/v1/articles/search.atom?q=fitbit"
+articlesXml <- xmlTreeParse(getURL(qry), useInternalNodes=TRUE)
+articles <- data.frame(
+    Title = sapply(xpathSApply(articlesXml, path="//a:feed/a:entry/a:title", namespaces=c(a="http://www.w3.org/2005/Atom")), xmlValue),
+    Source = sapply(xpathSApply(articlesXml, path="//a:feed/a:entry/a:source/a:title", namespaces=c(a="http://www.w3.org/2005/Atom")), xmlValue),
+    Link = xpathSApply(articlesXml, path="//a:feed/a:entry/a:source/a:link/@href", namespaces=c(a="http://www.w3.org/2005/Atom")),
+    stringsAsFactors = FALSE
+  )
+```
+
+
+
+--- .class #id 
+
+## How to use the Feedzilla API?
+
+```{r}
+head(articles$Title)
+```
+
+
+
+
+
+
+
+
+
